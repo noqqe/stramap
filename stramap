@@ -8,15 +8,20 @@ import folium
 # gpxfiles = [ 'test.gpx', 'test2.gpx' ]
 gpxfiles = glob.glob('./activities/*.gpx')
 
-# Load map centred on average coordinates
-my_map = folium.Map(zoom_start=14)
+# What years to filter
+years = list(range(2012, 2019))
+years.append(None)
 
-for gpxfile in gpxfiles:
+
+def draw_file(osm_map, year, gpxfile):
     points = []
-
     xfile = open(gpxfile, 'r')
-
     gpx = gpxpy.parse(xfile)
+
+    # check if file is from this year
+    if gpx.tracks[0].segments[0].points[0].time.year != year and year is not None:
+        return False
+
     for track in gpx.tracks:
         for segment in track.segments:
             for point in segment.points:
@@ -24,10 +29,26 @@ for gpxfile in gpxfiles:
 
     xfile.close()
 
-    ave_lat = sum(p[0] for p in points)/len(points)
-    ave_lon = sum(p[1] for p in points)/len(points)
+    folium.PolyLine(points, color="red", weight=2.5, opacity=0.5).add_to(osm_map)
 
-    folium.PolyLine(points, color="red", weight=2.5, opacity=0.5).add_to(my_map)
 
-# Save map
-my_map.save("./index.html")
+def draw_map(osm_map, files, year):
+    for gpxfile in gpxfiles:
+        draw_file(osm_map, year, gpxfile)
+
+
+def draw_all_years(years):
+
+    for year in years:
+        print("[+] Plotting {}".format(year))
+        osm_map = folium.Map(zoom_start=14)
+        draw_map(osm_map, files=gpxfiles, year=year)
+        osm_map.save("./index.{}.html".format(year))
+        print("[+] Wrote {} to ./index.{}.html".format(year, year))
+
+
+def main():
+    draw_all_years(years)
+
+
+main()
