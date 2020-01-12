@@ -9,11 +9,20 @@ import folium
 gpxfiles = glob.glob('./activities/*.gpx')
 
 # What years to filter
-years = list(range(2012, 2019))
+years = list(range(2012, 2020))
 years.append(None)
 
 
 def draw_file(osm_map, year, gpxfile):
+    """
+    Checks if gpx track is in time range (year or None)
+    Iterates over all tracks, segments and points and adds
+    points to maps object.
+    :osm_map: map object
+    :year: int or None
+    :gpxfile: str
+    returns: boolean
+    """
     points = []
     xfile = open(gpxfile, 'r')
     gpx = gpxpy.parse(xfile)
@@ -22,6 +31,7 @@ def draw_file(osm_map, year, gpxfile):
     if gpx.tracks[0].segments[0].points[0].time.year != year and year is not None:
         return False
 
+    # loop over tracks
     for track in gpx.tracks:
         for segment in track.segments:
             for point in segment.points:
@@ -29,15 +39,31 @@ def draw_file(osm_map, year, gpxfile):
 
     xfile.close()
 
+    # add line to map
     folium.PolyLine(points, color="red", weight=2.5, opacity=0.5).add_to(osm_map)
+    return True
 
 
 def draw_map(osm_map, files, year):
+    """
+    Iterates over all files in list and hand over to
+    draw track of file to map
+    :osm_map: map object
+    :files: list of files
+    :year: int or None
+    :returns: boolean
+    """
     for gpxfile in gpxfiles:
         draw_file(osm_map, year, gpxfile)
 
+    return True
 
-def draw_all_years(years):
+def main(years):
+    """
+    Loops over years and draws map
+    :years: list
+    :returns: boolean
+    """
 
     for year in years:
         print("[+] Plotting {}".format(year))
@@ -47,8 +73,5 @@ def draw_all_years(years):
         print("[+] Wrote {} to ./index.{}.html".format(year, year))
 
 
-def main():
-    draw_all_years(years)
-
-
-main()
+if __name__ == '__main__':
+    main(years)
