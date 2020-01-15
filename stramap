@@ -12,6 +12,8 @@ gpxfiles = glob.glob('./activities/*.gpx')
 years = list(range(2012, 2020))
 years.append(None)
 
+years = [ 2019 ]
+
 
 def draw_file(osm_map, year, gpxfile):
     """
@@ -28,7 +30,11 @@ def draw_file(osm_map, year, gpxfile):
     gpx = gpxpy.parse(xfile)
 
     # check if file is from this year
-    if gpx.tracks[0].segments[0].points[0].time.year != year and year is not None:
+    try:
+        if gpx.tracks[0].segments[0].points[0].time.year != year and year is not None:
+            return False
+    except IndexError:
+        print(" Ignoring file {}. Problem finding tracks, segments or time XML element in the file".format(gpxfile))
         return False
 
     # loop over tracks
