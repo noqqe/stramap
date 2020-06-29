@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import progress.bar
 import glob
 import gpxpy
 import gpxpy.gpx
@@ -9,10 +10,10 @@ import folium
 gpxfiles = glob.glob('./activities/*.gpx')
 
 # What years to filter
-years = list(range(2012, 2020))
+years = list(range(2012, 2021))
 years.append(None)
 
-years = [ 2019 ]
+#years = [ 2020 ]
 
 
 def draw_file(osm_map, year, gpxfile):
@@ -59,8 +60,13 @@ def draw_map(osm_map, files, year):
     :year: int or None
     :returns: boolean
     """
+
+    bar = progress.bar.IncrementalBar('Processing', suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(gpxfiles))
     for gpxfile in gpxfiles:
         draw_file(osm_map, year, gpxfile)
+        bar.next()
+
+    bar.finish()
 
     return True
 
