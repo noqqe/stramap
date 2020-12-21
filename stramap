@@ -1,20 +1,11 @@
 #!/usr/bin/env python3
 
+import argparse
 import progress.bar
 import glob
 import gpxpy
 import gpxpy.gpx
 import folium
-
-# gpxfiles = [ 'test.gpx', 'test2.gpx' ]
-gpxfiles = glob.glob('./activities/*.gpx')
-
-# What years to filter
-years = list(range(2012, 2021))
-years.append(None)
-
-#years = [ 2020 ]
-
 
 def draw_file(osm_map, year, gpxfile):
     """
@@ -61,8 +52,8 @@ def draw_map(osm_map, files, year):
     :returns: boolean
     """
 
-    bar = progress.bar.IncrementalBar('Processing', suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(gpxfiles))
-    for gpxfile in gpxfiles:
+    bar = progress.bar.IncrementalBar('Processing', suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(files))
+    for gpxfile in files:
         draw_file(osm_map, year, gpxfile)
         bar.next()
 
@@ -70,7 +61,7 @@ def draw_map(osm_map, files, year):
 
     return True
 
-def main(years):
+def main(years, files):
     """
     Loops over years and draws map
     :years: list
@@ -80,10 +71,14 @@ def main(years):
     for year in years:
         print("[+] Plotting {}".format(year))
         osm_map = folium.Map(zoom_start=14)
-        draw_map(osm_map, files=gpxfiles, year=year)
+        draw_map(osm_map, files=files, year=year)
         osm_map.save("./index.{}.html".format(year))
         print("[+] Wrote {} to ./index.{}.html".format(year, year))
 
 
 if __name__ == '__main__':
-    main(years)
+    parser = argparse.ArgumentParser(description='Strava Activites Export Map Builder')
+    parser.add_argument('--files', '-f', type=str)
+    parser.add_argument('--years', '-y', action='append', type=str, default=None)
+    args = parser.parse_args()
+    main(args.years, glob.glob(args.files))
