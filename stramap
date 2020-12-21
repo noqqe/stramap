@@ -125,7 +125,7 @@ def plot(years, activities):
     print("[+] Plotting")
     for year in years:
         osm_map = folium.Map(zoom_start=14)
-        draw_map(osm_map, files=glob.glob(activities + "/*-mini.gpx"), year=int(year))
+        draw_map(osm_map, files=glob.glob(activities + "/*.gpx"), year=int(year))
         osm_map.save("./index.{}.html".format(year))
         print("- Wrote {} to ./index.{}.html".format(year, year))
 
