@@ -10,6 +10,7 @@ import glob
 import gpxpy
 import gpxpy.gpx
 import folium
+import subprocess
 
 
 
@@ -18,7 +19,7 @@ def unzip(files):
     unzips all files in activities folder automatically
     """
     gzipfiles = glob.glob(os.path.dirname(files) + "/*.gz")
-    bar = progress.bar.IncrementalBar('Unpacking gzip files...', suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(gzipfiles))
+    bar = progress.bar.incrementalbar('unpacking gzip files...', suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(gzipfiles))
     for f in gzipfiles:
         with gzip.open(f,'rb') as f_in:
             with open(f.replace('.gz', ''), 'wb') as f_out:
@@ -27,6 +28,24 @@ def unzip(files):
                 bar.next()
     bar.finish()
 
+def fit2gpx():
+    """
+    Converts .fit files in activites folder to .gpx
+    """
+
+    if shutil.which('gpsbabel') is None:
+        print("Warning: gpsbabel not found, not trying to convert any .fit file")
+        return False
+
+    fitfiles = glob.glob(os.path.dirname(files) + "/*.fit"))
+    bar = progress.bar.incrementalbar('unpacking gzip files...', suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(gzipfiles))
+    for f in fitfiles:
+        # gpsbabel -i garmin_fit -f foo.fit -o gpx -F foo.gpx
+        subprocess.run(["gpsbabel", "-i", "garmin_fit", "-f", f,  "-o", "gpx", "-F", f.replace('.gz', '')])
+        os.remove(f)
+        bar.next()
+    bar.finish()
+    return True
 
 def draw_file(osm_map, year, gpxfile):
     """
@@ -103,4 +122,5 @@ if __name__ == '__main__':
     parser.add_argument('--years', '-y', action='append', type=str, default=None)
     args = parser.parse_args()
     unzip(args.files)
+    fit2gpx(args.files)
     #plot(args.years, glob.glob(args.files))
