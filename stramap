@@ -41,7 +41,7 @@ def fit2gpx(activities):
     bar = progress.bar.IncrementalBar('- Converting .fit files to .gpx...', suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(fitfiles))
     for f in fitfiles:
         # gpsbabel -i garmin_fit -f foo.fit -o gpx -F foo.gpx
-        subprocess.run(["gpsbabel", "-i", "garmin_fit", "-f", f,  "-o", "gpx", "-F", f.replace('.gz', '')])
+        subprocess.run(["gpsbabel", "-i", "garmin_fit", "-f", f,  "-o", "gpx", "-F", f.replace('.fit', '.gpx')])
         os.remove(f)
         bar.next()
     bar.finish()
@@ -78,11 +78,12 @@ def draw_file(osm_map, year, gpxfile):
 
     # check if file is from this year
     try:
-        if gpx.tracks[0].segments[0].points[0].time.year != year and year is not None:
+        if int(gpx.tracks[0].segments[0].points[0].time.year) != int(year) and year is not None:
             return False
     except IndexError:
         print("Ignoring file {}. Problem finding tracks, segments or time XML element in the file".format(gpxfile))
         return False
+
 
     # loop over tracks
     for track in gpx.tracks:
@@ -107,13 +108,15 @@ def draw_map(osm_map, files, year):
     :returns: boolean
     """
 
+    tracks_found = 0
     bar = progress.bar.IncrementalBar('- Placing dots on a map for %s...' % year, suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(files))
     for gpxfile in files:
-        draw_file(osm_map, year, gpxfile)
+        if draw_file(osm_map, year, gpxfile):
+            tracks_found = tracks_found + 1
         bar.next()
     bar.finish()
 
-    return True
+    return tracks_found
 
 def plot(years, activities):
     """
@@ -125,9 +128,9 @@ def plot(years, activities):
     print("[+] Plotting")
     for year in years:
         osm_map = folium.Map(zoom_start=14)
-        draw_map(osm_map, files=glob.glob(activities + "/*.gpx"), year=int(year))
+        tracks_found = draw_map(osm_map, files=glob.glob(activities + "/*.gpx"), year=int(year))
         osm_map.save("./index.{}.html".format(year))
-        print("- Wrote {} to ./index.{}.html".format(year, year))
+        print("- Wrote {} with {} found tracks to ./index.{}.html".format(year, tracks_found, year))
 
 
 if __name__ == '__main__':
