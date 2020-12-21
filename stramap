@@ -47,6 +47,20 @@ def fit2gpx(activities):
     bar.finish()
     return True
 
+def lcount(keyword, fname, rate):
+    with open(fname, 'r') as fin:
+        return int(sum([1 for line in fin if keyword in line])/rate)
+
+def simplifygpx(activities, rate=3):
+    gpxfiles = glob.glob(activities + "/*.gpx")
+    bar = progress.bar.IncrementalBar('- Simplifying gpx files by %s' % rate , suffix='%(remaining)s/%(max)s - %(percent).1f%% - %(eta)ds', max=len(gpxfiles))
+    for f in gpxfiles:
+        # gpsbabel -rt -i gpx -f 4149187130.gpx -x simplify,count=50 -o gpx -F SIMPLIFIED-4149187130.gpx
+        count = lcount("trkpt", f, rate)
+        subprocess.run(["gpsbabel", "-rt", "-i", "gpx", "-f", f, "-x", "simplify,count=%s" % count, "-o", "gpx", "-F", f.replace('.gpx', '-mini.gpx')])
+        os.remove(f)
+        bar.next()
+    bar.finish()
 
 def draw_file(osm_map, year, gpxfile):
     """
@@ -111,7 +125,7 @@ def plot(years, activities):
     print("[+] Plotting")
     for year in years:
         osm_map = folium.Map(zoom_start=14)
-        draw_map(osm_map, files=glob.glob(activities + "/*.gpx"), year=int(year))
+        draw_map(osm_map, files=glob.glob(activities + "/*-mini.gpx"), year=int(year))
         osm_map.save("./index.{}.html".format(year))
         print("- Wrote {} to ./index.{}.html".format(year, year))
 
@@ -124,4 +138,5 @@ if __name__ == '__main__':
     print("[+] Preparing exported files")
     unzip(args.activities)
     fit2gpx(args.activities)
+    #simplifygpx(args.activities)
     plot(args.years, args.activities)
