@@ -148,6 +148,6 @@ if __name__ == '__main__':
     fit2gpx(args.activities)
     if args.simplify is True:
         simplified = simplifygpx(args.activities, rate=30)
-        plot(years=args.years, acitivities=args.activities, filemask='/*-mini.gpx')
+        plot(years=args.years, activities=args.activities, filemask='/*-mini.gpx')
     else:
-        plot(years=args.years, acitivities=args.activities)
+        plot(years=args.years, activities=args.activities)
