@@ -8,6 +8,16 @@ gpx tracks to an OSM Map and results to an index.html file.
 
 ![logo](demo.png)
 
+# Usage
+
+* Download strava archive (see below)
+* Unzip `export_XXXXXXX.zip`
+* `pip install -r requirements.txt`
+* Optional: Install `gpsbabel`
+* `./stramap -a /home/<user>/Downloads/export_XXXXXXX/activities/`
+
+for more informations, see `--help`
+
 # Strava Data
 
 To get your strava data, go to 'Account' and 'Delete and Backup Account'. You
@@ -23,12 +33,3 @@ work upfront
 * tcx (home trainer data, we can just ignore this)
 * fit (binary format)
 * fit.gz (binary format)
-
-In order to work with the data we convert everything we can to `gpx`
-
-```
-cd activities/
-unzip  *.gz
-for x in *.fit ; do gpsbabel -i garmin_fit -f $x -o gpx -F $x.gpx ; done
-```
-
